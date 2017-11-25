@@ -135,3 +135,105 @@ echo 'Your email address is ' . $email;
 ​	比如上面的   **echo 'Your email address is ' . $email;**
 
 在python3里就是 **print('Your email address is ' , $email)**
+
+##2.《Head First PHP &MySQL》（二）
+
+​	当表单很多时，email会被塞满，需要用到MySQL来存储数据。
+
+### 2-1.创建MySQL数据库和表
+
+​	在终端中输入 **mysql -u root -p** 进入mysql程序。
+
+​	创建数据库：
+
+```mysql
+CREATE DATABASE aliendatabase;
+```
+
+​	SQL语句每句后面都要写分号 **;**	。
+
+​	在数据库中创建表之前，需要确保已经选择了这个数据库：
+
+```mysql
+USE aliendatabase;
+```
+
+​	创建新表：
+
+```mysql
+CREATE TABLE aliens_abduction(
+	first_name varchar(30),
+  	last_name varchar(30),
+  	when_it_happened varchar(30),
+  	how_long varchar(30),
+  	how_many varchar(30),
+  	alien_description varchar(30),
+  	what_they_did varchar(100),
+   	fang_spotted varchar(10),
+  	other varchar(100),
+  	email varchar(50)
+  );
+```
+
+​	varchar指这个变量是字符类型，后面挂号的数字是变量能存储多少字符。
+
+### 2-2.INSERT语句的使用
+
+​	INSERT用来在表中存储数据，一般格式为：
+
+```mysql
+INSERT INTO table_name (column_name1,column_name2,...)
+	VALUES ('value1','value2',...)
+```
+
+​	INSERT INTO是存储语句，table_name是表的名字，挂号中的column_name1之类的是数据库列名，VALUES语句指示后面对应列的值。
+
+- **顺序很重要，要插入的值必须以与列名完全相同的顺序排列。**
+
+  如下：
+
+
+```mysql
+INSERT INTO aliens_abduction(first_name,last_name,when_it_happened,how_long,how_many,alien_description,what_they_did,fang_spotted,other,email)
+values('Sally','Jones','3 days ago','1 day','four','green with six tentacles','We just taliked and played with a dog','yes','I may have seen your dog.Contact me.','sally@gregs-list.net');
+```
+
+### 2-3.使用select得到表数据
+
+```mysql
+SELECT columns from table_name	
+```
+
+​	columns是列名，table_name是表名，当想看那个表中的全部数据时可以用*代替columns。
+
+### 2-4.PHP中使用mysql语句
+
+- PHP与数据库通信
+
+​	使用**mysqli_connect()**函数可以用于建立php脚本与数据库的连接，需要设置4个参数，分别为：
+
+1. mysql服务器位置（IP地址或主机名）
+
+2. 数据库用户名
+
+3. 数据库密码
+
+4. 数据库名
+
+   需要把这个函数赋值给一个变量。
+
+   使用**mysqli_query()**函数向数据库的表中增加数据。有两个参数，第一个是连接变量名，第二个是记录的mysql语句。
+
+   使用**mysql-close()**关闭连接
+
+   整个的代码如下：
+
+```PHP
+<?php				$dbc=mysqli_connect('127.0.0.1','gzp','201330220360','aliendatabsae') or die('Error connection to MySQL server.');
+$query="INSERT INTO aliens_abduction(first_name,last_name,when_it_happened,how_long,how_many,alien_description,what_they_did,fang_spotted,other,email)
+values('Sally','Jones','3 days ago','1 day','four','green with six tentacles','We just taliked and played with a dog','yes','I may have seen your dog.Contact me.','sally@gregs-list.net')";
+$result=mysqli_query($dbc,$query) or die('Error querying database.');
+mysqli_close($dbc);
+?>
+```
+
