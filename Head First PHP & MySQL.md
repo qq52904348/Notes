@@ -251,7 +251,7 @@ select * from aliens_abduction where fang_spotted='yes'
 
 ### 2-5.完整的PHP代码
 
-```php+HTML
+```php
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -300,3 +300,4 @@ select * from aliens_abduction where fang_spotted='yes'
 </body>
 </html>
 ```
+
