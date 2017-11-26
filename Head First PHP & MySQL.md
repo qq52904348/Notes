@@ -204,11 +204,15 @@ values('Sally','Jones','3 days ago','1 day','four','green with six tentacles','W
 SELECT columns from table_name	
 ```
 
-​	columns是列名，table_name是表名，当想看那个表中的全部数据时可以用*代替columns。
+​	columns是列名，table_name是表名，当想看那个表中的全部数据时可以用*代替columns。select语句也可以设置条件，比如：
+
+```mysql
+select * from aliens_abduction where fang_spotted='yes'
+```
 
 ### 2-4.PHP中使用mysql语句
 
-- PHP与数据库通信
+​	PHP与数据库通信
 
 ​	使用**mysqli_connect()**函数可以用于建立php脚本与数据库的连接，需要设置4个参数，分别为：
 
@@ -229,11 +233,70 @@ SELECT columns from table_name
    整个的代码如下：
 
 ```PHP
-<?php				$dbc=mysqli_connect('127.0.0.1','gzp','201330220360','aliendatabsae') or die('Error connection to MySQL server.');
-$query="INSERT INTO aliens_abduction(first_name,last_name,when_it_happened,how_long,how_many,alien_description,what_they_did,fang_spotted,other,email)
-values('Sally','Jones','3 days ago','1 day','four','green with six tentacles','We just taliked and played with a dog','yes','I may have seen your dog.Contact me.','sally@gregs-list.net')";
-$result=mysqli_query($dbc,$query) or die('Error querying database.');
-mysqli_close($dbc);
+<?php				
+	$dbc = mysqli_connect('localhost', 'root', '201330220360', 'aliendatabase')
+    or die('Error connecting to MySQL server.');
+	$query = "INSERT INTO aliens_abduction (first_name, last_name,when_it_happened, how_long, " ."how_many, alien_description, what_they_did, fang_spotted, other, email) " .
+    "VALUES ('$first_name', '$last_name', '$when_it_happened', '$how_long', '$how_many', " .
+    "'$alien_description', '$what_they_did', '$fang_spotted', '$other', '$email')";
+
+  $result = mysqli_query($dbc, $query)
+    or die('Error querying database.');
+
+  mysqli_close($dbc);
 ?>
 ```
 
+​	**die()**函数会终止一个PHP脚本，并提供失败代码的反馈。如果mysqli_connect()的4个连接变量之一有问题，或者如果无法找到数据库服务器，die()函数就会终止其余PHP脚本的运行，并显示挂号的错误消息。
+
+### 2-5.完整的PHP代码
+
+```php+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Aliens Abducted Me - Report an Abduction</title>
+</head>
+<body>
+  <h2>Aliens Abducted Me - Report an Abduction</h2>
+
+<?php
+  $first_name = $_POST['firstname'];
+  $last_name = $_POST['lastname'];
+  $when_it_happened = $_POST['whenithappened'];
+  $how_long = $_POST['howlong'];
+  $how_many = $_POST['howmany'];
+  $alien_description = $_POST['aliendescription'];
+  $what_they_did = $_POST['whattheydid'];
+  $fang_spotted = $_POST['fangspotted'];
+  $email = $_POST['email'];
+  $other = $_POST['other'];
+
+  $dbc = mysqli_connect('localhost', 'root', '201330220360', 'aliendatabase')
+    or die('Error connecting to MySQL server.');
+
+  $query = "INSERT INTO aliens_abduction (first_name, last_name, when_it_happened, how_long, " .
+    "how_many, alien_description, what_they_did, fang_spotted, other, email) " .
+    "VALUES ('$first_name', '$last_name', '$when_it_happened', '$how_long', '$how_many', " .
+    "'$alien_description', '$what_they_did', '$fang_spotted', '$other', '$email')";
+
+  $result = mysqli_query($dbc, $query)
+    or die('Error querying database.');
+
+  mysqli_close($dbc);
+
+  echo 'Thanks for submitting the form.<br />';
+  echo 'You were abducted ' . $when_it_happened;
+  echo ' and were gone for ' . $how_long . '<br />';
+  echo 'Number of aliens: ' . $how_many . '<br />';
+  echo 'Describe them: ' . $alien_description . '<br />';
+  echo 'The aliens did this: ' . $what_they_did . '<br />';
+  echo 'Was Fang there? ' . $fang_spotted . '<br />';
+  echo 'Other comments: ' . $other . '<br />';
+  echo 'Your email address is ' . $email;
+?>
+
+</body>
+</html>
+```
