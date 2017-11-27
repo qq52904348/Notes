@@ -106,7 +106,7 @@ $how_many=$_POST['howmany'];
 $what_they_did=$_POST['whattheydid'];
 $other=$_POST['other'];
 
-$to='52904348@qq.com';
+$to='xxx@xxx.xxx';
 $subject='Aliens Abducted Me - Abduction Report';
 $msg="$name was abducted @when_it_happened and was gone for @how_long.\n".
 	"Number of aliens: $how_many\n".
@@ -234,7 +234,7 @@ select * from aliens_abduction where fang_spotted='yes'
 
 ```PHP
 <?php				
-	$dbc = mysqli_connect('localhost', 'root', '201330220360', 'aliendatabase')
+	$dbc = mysqli_connect('localhost', 'root', '******', 'aliendatabase')
     or die('Error connecting to MySQL server.');
 	$query = "INSERT INTO aliens_abduction (first_name, last_name,when_it_happened, how_long, " ."how_many, alien_description, what_they_did, fang_spotted, other, email) " .
     "VALUES ('$first_name', '$last_name', '$when_it_happened', '$how_long', '$how_many', " .
@@ -273,7 +273,7 @@ select * from aliens_abduction where fang_spotted='yes'
   $email = $_POST['email'];
   $other = $_POST['other'];
 
-  $dbc = mysqli_connect('localhost', 'root', '201330220360', 'aliendatabase')
+  $dbc = mysqli_connect('localhost', 'root', '******', 'aliendatabase')
     or die('Error connecting to MySQL server.');
 
   $query = "INSERT INTO aliens_abduction (first_name, last_name, when_it_happened, how_long, " .
@@ -295,6 +295,265 @@ select * from aliens_abduction where fang_spotted='yes'
   echo 'Was Fang there? ' . $fang_spotted . '<br />';
   echo 'Other comments: ' . $other . '<br />';
   echo 'Your email address is ' . $email;
+?>
+
+</body>
+</html>
+```
+
+
+
+##3.《Head First PHP &MySQL》（三）
+
+### 3-1. MySQL数据类型
+
+- VARCHAR：VARiable CHARacter（可变字符）的简写，能够存储文本数据。可以适应你的数据长度，只存储你需要的数据而不用额外的空格填充。
+
+- CHAR或CHARACTER：很严格，数据是定长的。如果文本总是相同的长度使用。
+
+- DATETIME或TIMESTAMP：可以跟踪日期和时间。
+
+- DATE跟踪日期不跟踪时间；TIME跟踪时间不跟踪日期。
+
+- INT或INTERGER：存储整数。
+
+- BLOB：二进制数据。
+
+- TEXT：存储大量文本，比CHAR或VARCHAR多得多的文本。
+
+###3-2.DESCRIBE展示表的结构
+
+​	使用DESCRIBE可以查看表的结构：
+
+```mysql
+DESCRIBE table_name
+```
+
+​	这个结构只会显示Type、Null、Key、Default、Extra，不会显示数据的值。
+
+### 3-3.DROP TABLE删除表
+
+```mysql
+DROP TABLE table_name
+```
+
+ 	这个语句会把整个表都删除。
+
+### 3-4.PHP中获取mysql中的数据
+
+​	使用上节中的函数 **mysqli_query()** 在PHP中执行mysql命令，然后用函数 **mysqli_fetch_array()**结合**while循环**来获取表的数据。比如：
+
+```php
+$query="SELECT * FROM email_list";
+$result=mysqli_query($dbc,$query);
+/'
+email_list是表名，$dbc是连接mysql数据库的变量，然而上面的$result并不会包含数据，如果试图显示$result的值，会显示： Resource id #3
+$result变量只是存储了一个MySQL资源的ID号，而不是查询所返回的具体数据，这样就需要用到mysqli_fetch_array()函数了：
+'/
+  while ($row=mysqli_fetch_array($result)){
+    echo $row['first_name'].' '.$row['last_name'].':'.$row['email'].'<br />';
+  }
+```
+
+​	**mysqli_fetch_array()**可以得到表中的一行，下一次调用就会得到下一行。
+
+### 3-5.用DELETE删除数据
+
+```MYSQL
+DELETE FROM table_name
+```
+
+​	上面这样的形式会删除这个表中的所有数据（表还在）。如果想要删除特定的行，需要添加where子句:
+
+```mysql
+DELETE FROM table_name WHERE list_name ='内容'
+```
+
+### 3-6.这章代码
+
+#### addemail.html :
+
+```HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Add Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <img src="blankface.jpg" width="161" height="350" alt="" style="float:right" />
+  <img name="elvislogo" src="elvislogo.gif" width="229" height="32" border="0" alt="Make Me Elvis" />
+  <p>Enter your first name, last name, and email to be added to the <strong>Make Me Elvis</strong> mailing list.</p>
+  <form method="post" action="addemail.php">
+    <label for="firstname">First name:</label>
+    <input type="text" id="firstname" name="firstname" /><br />
+    <label for="lastname">Last name:</label>
+    <input type="text" id="lastname" name="lastname" /><br />
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email" /><br />
+    <input type="submit" name="Submit" value="Submit" />
+  </form>
+</body>
+</html>
+```
+
+
+
+#### addemail.php :
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Add Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+
+<?php
+  $dbc = mysqli_connect('localhost', 'root', '******', 'elvis_store')
+    or die('Error connecting to MySQL server.');
+
+  $first_name = $_POST['firstname'];
+  $last_name = $_POST['lastname'];
+  $email = $_POST['email'];
+
+  $query = "INSERT INTO email_list (first_name, last_name, email)  VALUES ('$first_name', '$last_name', '$email')";
+  mysqli_query($dbc, $query)
+    or die('Error querying database.');
+
+  echo 'Customer added.';
+
+  mysqli_close($dbc);
+?>
+</body>
+</html>
+```
+
+
+
+#### sendemail.html :
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Send Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <img src="blankface.jpg" width="161" height="350" alt="" style="float:right" />
+  <img name="elvislogo" src="elvislogo.gif" width="229" height="32" border="0" alt="Make Me Elvis" />
+  <p><strong>Private:</strong> For Elmer's use ONLY<br />
+  Write and send an email to mailing list members.</p>
+  <form method="post" action="sendemail.php">
+    <label for="subject">Subject of email:</label><br />
+    <input id="subject" name="subject" type="text" size="30" /><br />
+    <label for="elvismail">Body of email:</label><br />
+    <textarea id="elvismail" name="elvismail" rows="8" cols="40"></textarea><br />
+    <input type="submit" name="Submit" value="Submit" />
+  </form>
+</body>
+</html>
+```
+
+
+
+#### sendemail.php
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Send Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+
+<?php
+  $from = 'xxx@xxx.xxx';
+  $subject = $_POST['subject'];
+  $text = $_POST['elvismail'];
+
+  $dbc = mysqli_connect('localhost', 'root', '******', 'elvis_store')
+    or die('Error connecting to MySQL server.');
+
+  $query = "SELECT * FROM email_list";
+  $result = mysqli_query($dbc, $query)
+    or die('Error querying database.');
+
+  while ($row = mysqli_fetch_array($result)){
+    $to = $row['email'];
+    $first_name = $row['first_name'];
+    $last_name = $row['last_name'];
+    $msg = "Dear $first_name $last_name,\n$text";
+    mail($to, $subject, $msg, 'From:' . $from);
+    echo 'Email sent to: ' . $to . '<br />';
+  } 
+
+  mysqli_close($dbc);
+?>
+
+</body>
+</html>
+```
+
+
+
+#### removeemail.html :
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Remove Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <img src="blankface.jpg" width="161" height="350" alt="" style="float:right" />
+  <img name="elvislogo" src="elvislogo.gif" width="229" height="32" border="0" alt="Make Me Elvis" />
+  <p>Enter an email address to remove.</p>
+  <form method="post" action="removeemail.php">
+    <label for="email">Email address:</label><br />
+    <input id="email" name="email" type="text" size="30" /><br />
+    <input type="submit" name="Remove" value="Remove" />
+  </form>
+</body>
+</html>
+```
+
+
+
+####removeemail.php :
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Remove Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+
+<?php
+  $dbc = mysqli_connect('localhost', 'root', '******', 'elvis_store')
+    or die('Error connecting to MySQL server.');
+
+  $email = $_POST['email'];
+
+  $query = "DELETE FROM email_list WHERE email = '$email'";
+  mysqli_query($dbc, $query)
+    or die('Error querying database.');
+
+  echo 'Customer removed: ' . $email;
+
+  mysqli_close($dbc);
 ?>
 
 </body>
