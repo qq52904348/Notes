@@ -130,11 +130,11 @@ echo 'Your email address is ' . $email;
 </html>
 ```
 
-​	PHP代码是包含在\<html>里的，echo是打印当前的内容，PHP中连接两个字符串用一个点 **.** 就行。
+​	PHP代码是包含在\<html>里的，echo是输出当前的内容，PHP中连接两个字符串用一个点 **.** 就行。
 
 ​	比如上面的   **echo 'Your email address is ' . $email;**
 
-在python3里就是 **print('Your email address is ' , $email)**
+在python3里就是 **return （'Your email address is ' , $email)**
 
 ##2.《Head First PHP &MySQL》（二）
 
@@ -559,4 +559,263 @@ DELETE FROM table_name WHERE list_name ='内容'
 </body>
 </html>
 ```
+
+##4.《Head First PHP &MySQL》（四）
+
+### 4-1.PHP的if语句
+
+```php
+if (条件) {
+  内容
+}
+```
+
+### 4-2.验证变量的PHP函数
+
+​	**isset()**函数可以用来测试一个变量是否存在，这里指它是否已经赋值。
+
+​	**empty()**函数则更进一步，可以确定一个变量是否包含一个空值。
+
+​	当变量已经赋值了isset()才会返回true，而当一个变量为0、空串、false或NULL时empty()才会返回true。
+
+​	在sendemil.php中加入以下条件代码，这样就不会向客户发送空的邮件了
+
+```php
+if (!empty($subject)){
+  if(!empty($text)){
+    ...
+  }
+}
+```
+
+使用逻辑符号将两个条件合并：
+
+```php
+if ((!empty($subject))&&(!empty($text))){
+  ...
+}
+```
+
+或：||
+
+### 4-3.引用自身的表单
+
+​	把HTML代码移到PHP脚本中，HTML表单作为PHP脚本的一部分，而该PHP脚本将处理这个表单，那么这个表单就成为**自引用表单**。
+
+```php+HTML
+<form action="sendemail.php" method='post'>
+	...
+</form>
+```
+
+​	使用脚本名来返回其实不是很好，因为你一旦改变脚本名还需要改变代码，这里使用内置的PHP超级全局变量 **$\_SERVER['PHP\_SELF']**,这个变量中存储了脚本名。
+
+```php+HTML
+<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+  ...
+</form>
+```
+
+​	如果输入了空的表单，要再次显示刚的表单，PHP能记住之前输入过的数据,此为粘性表单。使用HTML<input>标记的value属性设置输入表单域：
+
+```php+HTML
+<input name="subject" type="text" value="<?php echo $subject; ?>">
+```
+
+​	这样之前输出的数据就还在了。
+
+###4-4.MySQL表中创建新列：ALTER  TABLE
+
+```MYSQL
+ALTER TABLE table_name ADD column_name column_type
+```
+
+### 4-5.foreach循环
+
+​	**foreach**循环取一个数组，并循环处理数组中的各个元素而无需测试条件或者循环计数器。在它迭代处理数组中的各个元素时，会临时将该元素的值存放在一个变量中。假设一个数组存放在一个名为$customers的变量中，以下代码将处理每一个客户：
+
+```php
+foreach ($customers as $customer){
+  echo $customer;
+}
+```
+
+​	此类似于python中的for，如：
+
+```python
+for customer in customers:
+    return customer
+```
+
+### 代码：
+
+####修改后的sendemail.php
+
+```php+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Send Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <img src="blankface.jpg" width="161" height="350" alt="" style="float:right" />
+  <img name="elvislogo" src="elvislogo.gif" width="229" height="32" border="0" alt="Make Me Elvis" />
+  <p><strong>Private:</strong> For Elmer's use ONLY<br />
+  Write and send an email to mailing list members.</p>
+
+<?php
+  if (isset($_POST['submit'])) {
+    $from = 'elmer@makemeelvis.com';
+    $subject = $_POST['subject'];
+    $text = $_POST['elvismail'];
+    $output_form = false;
+
+    if (empty($subject) && empty($text)) {
+      // We know both $subject AND $text are blank 
+      echo 'You forgot the email subject and body text.<br />';
+      $output_form = true;
+    }
+
+    if (empty($subject) && (!empty($text))) {
+      echo 'You forgot the email subject.<br />';
+      $output_form = true;
+    }
+
+    if ((!empty($subject)) && empty($text)) {
+      echo 'You forgot the email body text.<br />';
+      $output_form = true;
+    }
+  }
+  else {
+    $output_form = true;
+  }
+
+  if ((!empty($subject)) && (!empty($text))) {
+    $dbc = mysqli_connect('localhost', 'root', '******', 'elvis_store')
+      or die('Error connecting to MySQL server.');
+
+    $query = "SELECT * FROM email_list";
+    $result = mysqli_query($dbc, $query)
+      or die('Error querying database.');
+
+    while ($row = mysqli_fetch_array($result)){
+      $to = $row['email'];
+      $first_name = $row['first_name'];
+      $last_name = $row['last_name'];
+      $msg = "Dear $first_name $last_name,\n$text";
+      mail($to, $subject, $msg, 'From:' . $from);
+      echo 'Email sent to: ' . $to . '<br />';
+    } 
+
+    mysqli_close($dbc);
+  }
+
+  if ($output_form) {
+?>
+
+  <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+    <label for="subject">Subject of email:</label><br />
+    <input id="subject" name="subject" type="text" value="<?php echo $subject; ?>" size="30" /><br />
+    <label for="elvismail">Body of email:</label><br />
+    <textarea id="elvismail" name="elvismail" rows="8" cols="40"><?php echo $text; ?></textarea><br />
+    <input type="submit" name="submit" value="Submit" />
+  </form>
+
+<?php
+  }
+?>
+
+</body>
+</html>
+
+```
+
+
+
+#### 修改后的removeemail.php
+
+```php+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Make Me Elvis - Remove Email</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <img src="blankface.jpg" width="161" height="350" alt="" style="float:right" />
+  <img name="elvislogo" src="elvislogo.gif" width="229" height="32" border="0" alt="Make Me Elvis" />
+  <p>Please select the email addresses to delete from the email list and click Remove.</p>
+  <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+
+<?php
+  $dbc = mysqli_connect('localhost', 'root', '******', 'elvis_store')
+    or die('Error connecting to MySQL server.');
+
+  // Delete the customer rows (only if the form has been submitted)
+  if (isset($_POST['submit'])) {
+    foreach ($_POST['todelete'] as $delete_id) {
+      $query = "DELETE FROM email_list WHERE id = $delete_id";
+      mysqli_query($dbc, $query)
+        or die('Error querying database.');
+    } 
+
+    echo 'Customer(s) removed.<br />';
+  }
+
+  // Display the customer rows with checkboxes for deleting
+  $query = "SELECT * FROM email_list";
+  $result = mysqli_query($dbc, $query);
+  while ($row = mysqli_fetch_array($result)) {
+    echo '<input type="checkbox" value="' . $row['id'] . '" name="todelete[]" />';
+    echo $row['first_name'];
+    echo ' ' . $row['last_name'];
+    echo ' ' . $row['email'];
+    echo '<br />';
+  }
+
+  mysqli_close($dbc);
+?>
+
+    <input type="submit" name="submit" value="Remove" />
+  </form>
+</body>
+</html>
+```
+
+
+
+##5.《Head First PHP &MySQL》（五）
+
+### 5-1.mysql的ALTER语句
+
+​	**ALTER**语句用于修改一个数据库的结构
+
+- 为数据库表增加一个新列，只需在ADD COLUMN后面指定列名和类型：
+
+```mysql
+ALTER TABLE table_name ADD COLUMN column_name column_type
+```
+
+
+
+- 从一个数据库表删除一列（以及其中存储的所有数据），只需在DROP COLUMN后面指定列名：
+
+```mysql
+ALTER TABLE table_name DROP COLUMN column_name
+```
+
+
+
+- 修改一列的列名和数据类型，只需在CHANGE COLUMN后面指定原列名、新列名以及新列的数据类型：
+
+```mysql
+ALTER TABLE table_name CHANGE COLUMN old_column_name new_name new_type
+```
+
+
+
+
 
